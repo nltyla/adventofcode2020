@@ -2,26 +2,18 @@
   (:require [clojure.test :refer :all]
             [adventofcode2020.core :refer :all]))
 
-(deftest day1-example-test
-  (testing "day 1 example"
-    (is (= 514579 (day1 "1-example.txt")))))
-
 (deftest day1-test
-  (testing "day 1"
-    (is (= 1019371 (day1 "1.txt")))))
-
-(deftest day2-example-test
-  (testing "day 2 example"
-    (is (= 2 (day2 "2-example.txt")))))
+  (is (= 514579 (day1 "1-example.txt")))
+  (is (= 1019371 (day1 "1.txt"))))
 
 (deftest day2-test
-  (testing "day 2"
-    (is (= 418 (day2 "2.txt")))))
-
-(deftest day3-example-test
-  (testing "day 3 example"
-    (is (= 7 (day3 "3-example.txt")))))
+  (is (= 2 (day2 "2-example.txt")))
+  (is (= 418 (day2 "2.txt"))))
 
 (deftest day3-test
-  (testing "day 3"
-    (is (= 276 (day3 "3.txt")))))
+  (is (= 7 (day3 "3-example.txt")))
+  (is (= 276 (day3 "3.txt"))))
+
+(deftest day4-test
+  (is (= 2 (day4 "4-example.txt")))
+  (is (= 182 (day4 "4.txt"))))

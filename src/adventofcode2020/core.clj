@@ -49,4 +49,13 @@
 
 (defn day4
   "--- Day 4: Passport Processing ---"
-  [])
+  [name]
+  (let [s (inputs name identity)
+        req ["byr" "iyr" "eyr" "hgt" "hcl" "ecl" "pid"]
+        xf (comp (partition-by #(str/blank? %))
+                 (map (partial str/join " "))
+                 (filter (complement empty?))
+                 (map #(str/split % #"\s|:"))
+                 (map #(apply hash-map %))
+                 (map #(if (every? % req) 1 0)))]
+    (transduce xf + s)))
