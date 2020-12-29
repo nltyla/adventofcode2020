@@ -8,18 +8,16 @@
   (map f (str/split-lines (slurp (io/resource name)))))
 
 (defn day1
-  "Day 1: Report Repair"
-  []
-  (let [v (inputs "1.txt" #(Integer/parseInt %))
+  "--- Day 1: Report Repair ---"
+  [name]
+  (let [v (inputs name #(Integer/parseInt %))
         vv (map vector v)
         x (comp (mapcat (fn [e] (map #(conj % e) vv)))
                 (map #(conj % (+ (% 0) (% 1))))
                 (filter #(= 2020 (% 2)))
                 (map #(* (% 0) (% 1)))
                 (distinct))]
-    (into [] x v)))
-
-;-----
+    (first (into [] x v))))
 
 (defn char-count
   "returns the number of occurrences of char needle in string s"
@@ -36,9 +34,19 @@
     (if (<= lowi cnt highi) 1 0)))
 
 (defn day2
-  "Day 2: Password Philosophy"
-  []
-  (let [s (inputs "2.txt" identity)]
+  "--- Day 2: Password Philosophy ---"
+  [name]
+  (let [s (inputs name identity)]
     (transduce (map valid-pwd) + s)))
 
-;-----
+(defn day3
+  "--- Day 3: Toboggan Trajectory ---"
+  [name]
+  (let [grid (inputs name cycle)
+        offsets (iterate #(+ 3 %) 0)
+        trees (map (fn [row offset] (if (= \# (nth row offset)) 1 0)) grid offsets)]
+    (reduce + trees)))
+
+(defn day4
+  "--- Day 4: Passport Processing ---"
+  [])
