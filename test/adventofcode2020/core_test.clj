@@ -17,3 +17,22 @@
 (deftest day4-test
   (is (= 2 (day4 "4-example.txt")))
   (is (= 182 (day4 "4.txt"))))
+
+(deftest day4-part2-test
+  (is (true? (byr-pred "2002")))
+  (is (false? (byr-pred "2003")))
+  (is (true? (hgt-pred "60in")))
+  (is (true? (hgt-pred "190cm")))
+  (is (false? (hgt-pred "190in")))
+  (is (false? (hgt-pred "190")))
+  (is (true? (hcl-pred "#123abc")))
+  (is (false? (hcl-pred "#123abz")))
+  (is (false? (hcl-pred "123abc")))
+  (is (true? (ecl-pred "brn")))
+  (is (false? (ecl-pred "wat")))
+  (is (true? (pid-pred "000000001")))
+  (is (false? (pid-pred "0123456789")))
+  (is (= 0 (day4-part2 "4-2-example-invalid.txt")))
+  (is (= 4 (day4-part2 "4-2-example-valid.txt")))
+  (is (= 109 (day4-part2 "4.txt")))
+  )

@@ -27,7 +27,7 @@
 (defn valid-pwd
   "return 0 for invalid, 1 for valid rule"
   [rule]
-  (let [[low high letter pwd] (rest (re-find #"(\d+)-(\d+) (.): (.*)" rule))
+  (let [[_ low high letter pwd] (re-find #"(\d+)-(\d+) (.): (.*)" rule)
         lowi (Integer/parseInt low)
         highi (Integer/parseInt high)
         cnt (char-count (first letter) pwd)]
@@ -47,15 +47,61 @@
         trees (map (fn [row offset] (if (= \# (nth row offset)) 1 0)) grid offsets)]
     (reduce + trees)))
 
-(defn day4
-  "--- Day 4: Passport Processing ---"
-  [name]
+(defn validate-passport
+  [preds p]
+  (if (every? (fn [[key pred]] (and (contains? p key) (pred (p key)))) (seq preds)) 1 0))
+
+(defn day4-shared
+  [name preds]
   (let [s (inputs name identity)
-        req ["byr" "iyr" "eyr" "hgt" "hcl" "ecl" "pid"]
         xf (comp (partition-by #(str/blank? %))
                  (map (partial str/join " "))
                  (filter (complement empty?))
                  (map #(str/split % #"\s|:"))
                  (map #(apply hash-map %))
-                 (map #(if (every? % req) 1 0)))]
+                 (map #(validate-passport preds %)))]
     (transduce xf + s)))
+
+(defn day4
+  "--- Day 4: Passport Processing ---"
+  [name]
+  (let [true-pred (constantly true)]
+    (day4-shared name {"byr" true-pred,
+                       "iyr" true-pred,
+                       "eyr" true-pred,
+                       "hgt" true-pred,
+                       "hcl" true-pred,
+                       "ecl" true-pred,
+                       "pid" true-pred})))
+
+(defn yr-pred
+  [from to]
+  (fn [s] (and (some? (re-matches #"\d\d\d\d" s)) (<= from (Integer/parseInt s) to))))
+
+(def byr-pred (yr-pred 1920 2002))
+(def iyr-pred (yr-pred 2010 2020))
+(def eyr-pred (yr-pred 2020 2030))
+
+(def hgt-pred
+  (fn [s] (if-let [cm (re-matches #"(\d\d\d)cm" s)]
+            (<= 150 (Integer/parseInt (cm 1)) 193)
+            (if-let [in (re-matches #"(\d\d)in" s)]
+              (<= 59 (Integer/parseInt (in 1)) 76)
+              false))))
+
+(def hcl-pred (fn [s] (some? (re-matches #"#[0-9a-f]{6}" s))))
+
+(def ecl-pred (fn [s] (contains? #{"amb" "blu" "brn" "gry" "grn" "hzl" "oth"} s)))
+
+(def pid-pred (fn [s] (some? (re-matches #"\d{9}" s))))
+
+(defn day4-part2
+  "--- Day 4 Part Two : Passport Processing ---"
+  [name]
+  (day4-shared name {"byr" byr-pred,
+                     "iyr" iyr-pred,
+                     "eyr" eyr-pred,
+                     "hgt" hgt-pred,
+                     "hcl" hcl-pred,
+                     "ecl" ecl-pred,
+                     "pid" pid-pred}))
