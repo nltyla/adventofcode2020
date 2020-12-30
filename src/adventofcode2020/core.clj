@@ -7,8 +7,9 @@
   [name f]
   (map f (str/split-lines (slurp (io/resource name)))))
 
-(defn day1-shared
-  [name n]
+(defn day1
+  "--- Day 1: Report Repair ---"
+  [n name]
   (let [v (inputs name #(Integer/parseInt %))
         in (take n (repeat v))
         perm0 (map vector v)
@@ -19,35 +20,44 @@
                 (distinct))]
     (first (into [] x perms))))
 
-(defn day1
-  "--- Day 1: Report Repair ---"
-  [name]
-  (day1-shared name 1))
+(def day1-1 (partial day1 1))
 
-(defn day1-part2
-  "--- Day 1: Report Repair ---"
-  [name]
-  (day1-shared name 2))
+(def day1-2 (partial day1 2))
 
 (defn char-count
   "returns the number of occurrences of char needle in string s"
   [needle s]
   (transduce (map #(if (= needle %) 1 0)) + s))
 
-(defn valid-pwd
+(def pwd-pred (fn [low high letter pwd] (<= low (char-count letter pwd) high)))
+
+(defn letter-value [pwd letter index]
+  (if (= letter (nth pwd (dec index))) 1 0))
+
+(def pwd-pred-2
+  (fn [low high letter pwd]
+    (let [f (partial letter-value pwd letter)]
+      (= 1 (+ (f low) (f high))))))
+
+(defn pwd-value
   "return 0 for invalid, 1 for valid rule"
-  [rule]
-  (let [[_ low high letter pwd] (re-find #"(\d+)-(\d+) (.): (.*)" rule)
-        lowi (Integer/parseInt low)
-        highi (Integer/parseInt high)
-        cnt (char-count (first letter) pwd)]
-    (if (<= lowi cnt highi) 1 0)))
+  [pred rule]
+  (if-let [[_ low high [letter] pwd] (re-find #"(\d+)-(\d+) (.): (.*)" rule)]
+    (let [low (Integer/parseInt low)
+          high (Integer/parseInt high)]
+      (if (pred low high letter pwd) 1 0))
+    0))
 
 (defn day2
   "--- Day 2: Password Philosophy ---"
-  [name]
-  (let [s (inputs name identity)]
-    (transduce (map valid-pwd) + s)))
+  [pred name]
+  (let [s (inputs name identity)
+        f (partial pwd-value pred)]
+    (transduce (map f) + s)))
+
+(def day2-1 (partial day2 pwd-pred))
+
+(def day2-2 (partial day2 pwd-pred-2))
 
 (defn day3
   "--- Day 3: Toboggan Trajectory ---"
@@ -61,8 +71,9 @@
   [preds p]
   (if (every? (fn [[key pred]] (and (contains? p key) (pred (p key)))) (seq preds)) 1 0))
 
-(defn day4-shared
-  [name preds]
+(defn day4
+  "--- Day 4: Passport Processing ---"
+  [preds name]
   (let [s (inputs name identity)
         xf (comp (partition-by #(str/blank? %))
                  (map (partial str/join " "))
@@ -71,18 +82,6 @@
                  (map #(apply hash-map %))
                  (map #(validate-passport preds %)))]
     (transduce xf + s)))
-
-(defn day4
-  "--- Day 4: Passport Processing ---"
-  [name]
-  (let [true-pred (constantly true)]
-    (day4-shared name {"byr" true-pred,
-                       "iyr" true-pred,
-                       "eyr" true-pred,
-                       "hgt" true-pred,
-                       "hcl" true-pred,
-                       "ecl" true-pred,
-                       "pid" true-pred})))
 
 (defn yr-pred
   [from to]
@@ -105,13 +104,20 @@
 
 (def pid-pred (fn [s] (some? (re-matches #"\d{9}" s))))
 
-(defn day4-part2
-  "--- Day 4 Part Two : Passport Processing ---"
-  [name]
-  (day4-shared name {"byr" byr-pred,
-                     "iyr" iyr-pred,
-                     "eyr" eyr-pred,
-                     "hgt" hgt-pred,
-                     "hcl" hcl-pred,
-                     "ecl" ecl-pred,
-                     "pid" pid-pred}))
+(def true-pred (constantly true))
+
+(def day4-1 (partial day4 {"byr" true-pred,
+                           "iyr" true-pred,
+                           "eyr" true-pred,
+                           "hgt" true-pred,
+                           "hcl" true-pred,
+                           "ecl" true-pred,
+                           "pid" true-pred}))
+
+(def day4-2 (partial day4 {"byr" byr-pred,
+                           "iyr" iyr-pred,
+                           "eyr" eyr-pred,
+                           "hgt" hgt-pred,
+                           "hcl" hcl-pred,
+                           "ecl" ecl-pred,
+                           "pid" pid-pred}))
