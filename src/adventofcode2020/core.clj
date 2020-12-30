@@ -7,17 +7,27 @@
   [name f]
   (map f (str/split-lines (slurp (io/resource name)))))
 
+(defn day1-shared
+  [name n]
+  (let [v (inputs name #(Integer/parseInt %))
+        in (take n (repeat v))
+        perm0 (map vector v)
+        perms (reduce (fn [acc vl] (mapcat (fn [v] (map #(conj % v) acc)) vl)) perm0 in)
+        x (comp (map #(conj % (reduce + %)))
+                (filter #(= 2020 (last %)))
+                (map #(apply * (butlast %)))
+                (distinct))]
+    (first (into [] x perms))))
+
 (defn day1
   "--- Day 1: Report Repair ---"
   [name]
-  (let [v (inputs name #(Integer/parseInt %))
-        vv (map vector v)
-        x (comp (mapcat (fn [e] (map #(conj % e) vv)))
-                (map #(conj % (+ (% 0) (% 1))))
-                (filter #(= 2020 (% 2)))
-                (map #(* (% 0) (% 1)))
-                (distinct))]
-    (first (into [] x v))))
+  (day1-shared name 1))
+
+(defn day1-part2
+  "--- Day 1: Report Repair ---"
+  [name]
+  (day1-shared name 2))
 
 (defn char-count
   "returns the number of occurrences of char needle in string s"

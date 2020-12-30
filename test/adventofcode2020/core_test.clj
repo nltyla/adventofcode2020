@@ -6,6 +6,10 @@
   (is (= 514579 (day1 "1-example.txt")))
   (is (= 1019371 (day1 "1.txt"))))
 
+(deftest day1-part2-test
+  (is (= 241861950 (day1-part2 "1-example.txt")))
+  (is (= 278064990 (day1-part2 "1.txt"))))
+
 (deftest day2-test
   (is (= 2 (day2 "2-example.txt")))
   (is (= 418 (day2 "2.txt"))))
