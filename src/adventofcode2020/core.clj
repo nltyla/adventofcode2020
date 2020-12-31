@@ -156,3 +156,14 @@
         (if (not= (first r) prev')
           prev'
           (recur prev' (rest r)))))))
+
+(defn day6
+  "--- Day 6: Custom Customs ---"
+  [name]
+  (let [s (inputs name identity)
+        xf (comp (partition-by #(str/blank? %))
+                 (map (partial str/join))
+                 (filter (complement empty?))
+                 (map #(distinct %))
+                 (map #(count %)))]
+    (transduce xf + s)))
