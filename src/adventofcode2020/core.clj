@@ -1,6 +1,7 @@
 (ns adventofcode2020.core
   (:require [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.set :as set]))
 
 (defn inputs
   "read file from resources, apply f to each line, return seq"
@@ -159,11 +160,15 @@
 
 (defn day6
   "--- Day 6: Custom Customs ---"
-  [name]
+  [f name]
   (let [s (inputs name identity)
         xf (comp (partition-by #(str/blank? %))
-                 (map (partial str/join))
-                 (filter (complement empty?))
-                 (map #(distinct %))
+                 (filter #(not= [""] %))
+                 (map #(map (fn [member] (set member)) %))
+                 (map #(apply f %))
                  (map #(count %)))]
     (transduce xf + s)))
+
+(def day6-1 (partial day6 set/union))
+
+(def day6-2 (partial day6 set/intersection))
