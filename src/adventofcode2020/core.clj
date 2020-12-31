@@ -14,7 +14,7 @@
 (defn day1-2-core
   [v]
   (let [z1 (for [x v y v :let [t (+ x y)] :when (<= t 2020)] [x y t])]
-        (for [x v [y1 y2 y3] z1 :when (= (+ x y3) 2020)] [x y1 y2])))
+    (for [x v [y1 y2 y3] z1 :when (= (+ x y3) 2020)] [x y1 y2])))
 
 (defn day1
   "--- Day 1: Report Repair ---"
@@ -89,6 +89,34 @@
                  (map #(apply hash-map %))
                  (map #(validate-passport preds %)))]
     (transduce xf + s)))
+
+(defn binstr-to-dec
+  [s]
+  (loop [sr (reverse s)
+         d 0
+         m 1]
+    (if (empty? sr)
+      d
+      (let [c (first sr)
+            d' (if (or (= \R c) (= \B c)) (+ d m) d)]
+        (recur (rest sr) d' (* 2 m))))))
+
+(defn day5
+  "--- Day 5: Binary Boarding ---"
+  [name]
+  (let [s (inputs name identity)]
+    (apply max (map binstr-to-dec s))))
+
+(defn day5-2
+  [name]
+  (let [s (inputs name identity)
+        p (sort (map binstr-to-dec s))]
+    (loop [prev (first p)
+           r (rest p)]
+      (let [prev' (inc prev)]
+        (if (not= (first r) prev')
+          prev'
+          (recur prev' (rest r)))))))
 
 (defn yr-pred
   [from to]

@@ -48,3 +48,11 @@
   (is (= 4 (day4-2 "4-2-example-valid.txt")))
   (is (= 109 (day4-2 "4.txt")))
   )
+
+(deftest day5-1-test
+  (is (= 357 (binstr-to-dec "FBFBBFFRLR")))
+  (is (= 820 (day5 "5-example.txt")))
+  (is (= 951 (day5 "5.txt"))))
+
+(deftest day5-2-test
+  (is (= 653 (day5-2 "5.txt"))))
