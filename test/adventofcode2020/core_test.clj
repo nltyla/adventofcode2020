@@ -18,9 +18,13 @@
   (is (= 1 (day2-2 "2-example.txt")))
   (is (= 616 (day2-2 "2.txt"))))
 
-(deftest day3-test
-  (is (= 7 (day3 "3-example.txt")))
-  (is (= 276 (day3 "3.txt"))))
+(deftest day3-1-test
+  (is (= 7 (day3-1 "3-example.txt")))
+  (is (= 276 (day3-1 "3.txt"))))
+
+(deftest day3-2-test
+  (is (= 336 (day3-2 "3-example.txt")))
+  (is (= 7812180000 (day3-2 "3.txt"))))
 
 (deftest day4-1-test
   (is (= 2 (day4-1 "4-example.txt")))

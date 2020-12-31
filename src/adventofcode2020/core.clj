@@ -62,11 +62,17 @@
 
 (defn day3
   "--- Day 3: Toboggan Trajectory ---"
-  [name]
-  (let [grid (inputs name cycle)
-        offsets (iterate #(+ 3 %) 0)
+  [rowstep colstep name]
+  (let [grid (take-nth rowstep (inputs name cycle))
+        offsets (iterate #(+ colstep %) 0)
         trees (map (fn [row offset] (if (= \# (nth row offset)) 1 0)) grid offsets)]
     (reduce + trees)))
+
+(def day3-1 (partial day3 1 3))
+
+(defn day3-2
+  [name]
+  (* (day3 1 1 name) (day3 1 3 name) (day3 1 5 name) (day3 1 7 name) (day3 2 1 name)))
 
 (defn validate-passport
   [preds p]
