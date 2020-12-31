@@ -90,34 +90,6 @@
                  (map #(validate-passport preds %)))]
     (transduce xf + s)))
 
-(defn binstr-to-dec
-  [s]
-  (loop [sr (reverse s)
-         d 0
-         m 1]
-    (if (empty? sr)
-      d
-      (let [c (first sr)
-            d' (if (or (= \R c) (= \B c)) (+ d m) d)]
-        (recur (rest sr) d' (* 2 m))))))
-
-(defn day5
-  "--- Day 5: Binary Boarding ---"
-  [name]
-  (let [s (inputs name identity)]
-    (apply max (map binstr-to-dec s))))
-
-(defn day5-2
-  [name]
-  (let [s (inputs name identity)
-        p (sort (map binstr-to-dec s))]
-    (loop [prev (first p)
-           r (rest p)]
-      (let [prev' (inc prev)]
-        (if (not= (first r) prev')
-          prev'
-          (recur prev' (rest r)))))))
-
 (defn yr-pred
   [from to]
   (fn [s] (and (some? (re-matches #"\d\d\d\d" s)) (<= from (Integer/parseInt s) to))))
@@ -156,3 +128,31 @@
                            "hcl" hcl-pred,
                            "ecl" ecl-pred,
                            "pid" pid-pred}))
+
+(defn binstr-to-dec
+  [s]
+  (loop [sr (reverse s)
+         d 0
+         m 1]
+    (if (empty? sr)
+      d
+      (let [c (first sr)
+            d' (if (or (= \R c) (= \B c)) (+ d m) d)]
+        (recur (rest sr) d' (* 2 m))))))
+
+(defn day5
+  "--- Day 5: Binary Boarding ---"
+  [name]
+  (let [s (inputs name identity)]
+    (apply max (map binstr-to-dec s))))
+
+(defn day5-2
+  [name]
+  (let [s (inputs name identity)
+        p (sort (map binstr-to-dec s))]
+    (loop [prev (first p)
+           r (rest p)]
+      (let [prev' (inc prev)]
+        (if (not= (first r) prev')
+          prev'
+          (recur prev' (rest r)))))))
