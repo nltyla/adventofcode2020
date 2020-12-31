@@ -7,22 +7,23 @@
   [name f]
   (map f (str/split-lines (slurp (io/resource name)))))
 
+(defn day1-1-core
+  [v]
+  (for [x v y v :when (= 2020 (+ x y))] [x y]))
+
+(defn day1-2-core
+  [v]
+  (let [z1 (for [x v y v :let [t (+ x y)] :when (<= t 2020)] [x y t])]
+        (for [x v [y1 y2 y3] z1 :when (= (+ x y3) 2020)] [x y1 y2])))
+
 (defn day1
   "--- Day 1: Report Repair ---"
-  [n name]
-  (let [v (inputs name #(Integer/parseInt %))
-        in (take n (repeat v))
-        perm0 (map vector v)
-        perms (reduce (fn [acc vl] (mapcat (fn [v] (map #(conj % v) acc)) vl)) perm0 in)
-        x (comp (map #(conj % (reduce + %)))
-                (filter #(= 2020 (last %)))
-                (map #(apply * (butlast %)))
-                (distinct))]
-    (first (into [] x perms))))
+  [f name]
+  (let [v (inputs name #(Integer/parseInt %))]
+    (reduce * (first (f v)))))
 
-(def day1-1 (partial day1 1))
-
-(def day1-2 (partial day1 2))
+(def day1-1 (partial day1 day1-1-core))
+(def day1-2 (partial day1 day1-2-core))
 
 (defn char-count
   "returns the number of occurrences of char needle in string s"
