@@ -187,9 +187,13 @@
         (recur (re-find m) (assoc result (keywordize rest) (Integer/parseInt count)))))
     ))
 
+(def children (fn [m key] (keys (m key))))
+
+(def children-expanded (fn [m key] (reduce-kv (fn [acc k v] (apply conj acc (repeat v k))) [] (m key))))
+
 (defn bag-reachable
-  [m target root]
-  (let [bags (tree-seq keyword? #(keys (m %)) root)]
+  [f target root]
+  (let [bags (tree-seq true-pred f root)]
     (if (some #(= target %) bags)
       1
       0))
@@ -201,6 +205,15 @@
   (let [s (inputs name parse-bag-line)
         m (into {} s)
         target :shiny-gold
-        f (partial bag-reachable m target)
+        f (partial bag-reachable (partial children m) target)
         k (filter #(not= target %) (keys m))]
     (transduce (map f) + k)))
+
+(defn day7-2
+  "--- Day 7: Handy Haversacks ---"
+  [name]
+  (let [s (inputs name parse-bag-line)
+        m (into {} s)
+        bags (tree-seq true-pred (partial children-expanded m) :shiny-gold)]
+    (count (rest bags))
+    ))
