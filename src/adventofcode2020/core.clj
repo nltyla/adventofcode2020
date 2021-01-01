@@ -172,3 +172,35 @@
 (def day6-1 (partial day6 set/union))
 
 (def day6-2 (partial day6 set/intersection))
+
+(defn keywordize [names] (keyword (str/join "-" names)))
+
+(defn parse-bag-line
+  [s]
+  (let [[_ & rest] (re-find #"(\w+) (\w+) bags" s)
+        key (keywordize rest)
+        m (re-matcher #"(\d+) (\w+) (\w+) bag" s)]
+    (loop [[match count & rest] (re-find m)
+           result {}]
+      (if-not match
+        [key result]
+        (recur (re-find m) (assoc result (keywordize rest) (Integer/parseInt count)))))
+    ))
+
+(defn bag-reachable
+  [m target root]
+  (let [bags (tree-seq keyword? #(keys (m %)) root)]
+    (if (some #(= target %) bags)
+      1
+      0))
+  )
+
+(defn day7-1
+  "--- Day 7: Handy Haversacks ---"
+  [name]
+  (let [s (inputs name parse-bag-line)
+        m (into {} s)
+        target :shiny-gold
+        f (partial bag-reachable m target)
+        k (filter #(not= target %) (keys m))]
+    (transduce (map f) + k)))
