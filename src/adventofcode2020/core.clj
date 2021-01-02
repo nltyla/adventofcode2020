@@ -210,10 +210,45 @@
     (transduce (map f) + k)))
 
 (defn day7-2
-  "--- Day 7: Handy Haversacks ---"
+  "--- Day 7 Part Two: Handy Haversacks ---"
   [name]
   (let [s (inputs name parse-bag-line)
         m (into {} s)
         bags (tree-seq true-pred (partial children-expanded m) :shiny-gold)]
     (count (rest bags))
     ))
+
+(defn acc-instruction
+  [n state]
+  (-> state
+      (update :acc #(+ n %))
+      (update :pc inc)))
+
+(defn jmp-instruction
+  [n state]
+  (update state :pc #(+ n %)))
+
+(defn nop-instruction
+  [state]
+  (update state :pc inc))
+
+(defn to-fn
+  [s]
+  (let [[_ ins n] (re-matches #"(acc|jmp|nop) ([+-]\d+)" s)
+        ni (Integer/parseInt n)]
+    (cond (= ins "acc") (partial acc-instruction ni)
+          (= ins "jmp") (partial jmp-instruction ni)
+          (= ins "nop") nop-instruction)))
+
+(defn day8-1
+  "--- Day 8: Handheld Halting ---"
+  [name]
+  (let [instructions (into [] (inputs name to-fn))]
+    (loop [state {:pc 0 :acc 0}
+           seen #{}]
+      (let [pc (:pc state)
+            seen? (contains? seen pc)
+            instruction (instructions pc)]
+        (if seen?
+          (:acc state)
+          (recur (instruction state) (conj seen pc)))))))
