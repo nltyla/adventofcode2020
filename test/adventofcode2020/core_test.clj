@@ -76,3 +76,7 @@
 (deftest day8-1-test
   (is (= 5 (day8-1 "8-example.txt")))
   (is (= 1548 (day8-1 "8.txt"))))
+
+(deftest day8-2-test
+  (is (= 8 (day8-2 "8-example.txt")))
+  (is (= 1375 (day8-2 "8.txt"))))

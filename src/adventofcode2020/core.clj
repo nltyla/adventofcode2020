@@ -232,7 +232,7 @@
   [state]
   (update state :pc inc))
 
-(defn to-fn
+(defn compile-instruction
   [s]
   (let [[_ ins n] (re-matches #"(acc|jmp|nop) ([+-]\d+)" s)
         ni (Integer/parseInt n)]
@@ -243,7 +243,7 @@
 (defn day8-1
   "--- Day 8: Handheld Halting ---"
   [name]
-  (let [instructions (into [] (inputs name to-fn))]
+  (let [instructions (into [] (inputs name compile-instruction))]
     (loop [state {:pc 0 :acc 0}
            seen #{}]
       (let [pc (:pc state)
@@ -252,3 +252,62 @@
         (if seen?
           (:acc state)
           (recur (instruction state) (conj seen pc)))))))
+
+(defn parse-instruction
+  [s]
+  (let [[_ ins n] (re-matches #"(acc|jmp|nop) ([+-]\d+)" s)
+        ni (Integer/parseInt n)]
+    (cond (= ins "acc") [:acc ni]
+          (= ins "jmp") [:jmp ni]
+          (= ins "nop") [:nop ni])))
+
+
+(defn acc-instruction-2
+  [operand state]
+  (-> state
+      (update :acc #(+ operand %))
+      (update :pc inc)))
+
+(declare nop-instruction-2)
+
+(defn jmp-instruction-2
+  [operand state flip]
+  (if flip
+    (nop-instruction-2 operand state (not flip))
+    (update state :pc #(+ operand %))))
+
+(defn nop-instruction-2
+  [operand state flip]
+  (if flip
+    (jmp-instruction-2 operand state (not flip))
+    (update state :pc inc)))
+
+(defn interpret
+  [instructions iter]
+  (loop [state {:pc 0 :acc 0}
+         seen #{}]
+    (let [pc (:pc state)
+          seen? (contains? seen pc)]
+      (cond seen? [:fail (:acc state)]
+            (= pc (count instructions)) [:success (:acc state)]
+            :else (let [[opcode operand flip-iter] (instructions pc)
+                        flip (= iter flip-iter)
+                        state' (cond (= opcode :acc) (acc-instruction-2 operand state)
+                                     (= opcode :jmp) (jmp-instruction-2 operand state flip)
+                                     (= opcode :nop) (nop-instruction-2 operand state flip))]
+                    (recur state' (conj seen pc))))))
+  )
+
+(defn day8-2
+  "--- Day 8 Part Two: Handheld Halting ---"
+  [name]
+  (let [instructions (into [] (inputs name parse-instruction))
+        pc-with-nop-jmp (keep-indexed #(if (or (= :nop (%2 0)) (= :jmp (%2 0))) %1) instructions)
+        pc-seqno (map-indexed #(list %2 %1) pc-with-nop-jmp)
+        mod-instructions (reduce (fn [acc idxs] (update acc (first idxs) #(conj % (second idxs)))) instructions pc-seqno)
+        max-iter (count pc-with-nop-jmp)]
+    (loop [iter 0]
+      (let [[outcome acc] (interpret mod-instructions iter)]
+        (cond (= outcome :success) acc
+              (> iter max-iter) (println "fail iter " iter " acc" acc)
+              :else (recur (inc iter)))))))
