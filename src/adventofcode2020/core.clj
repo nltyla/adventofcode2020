@@ -179,13 +179,10 @@
   [s]
   (let [[_ & rest] (re-find #"(\w+) (\w+) bags" s)
         key (keywordize rest)
-        m (re-matcher #"(\d+) (\w+) (\w+) bag" s)]
-    (loop [[match count & rest] (re-find m)
-           result {}]
-      (if-not match
-        [key result]
-        (recur (re-find m) (assoc result (keywordize rest) (Integer/parseInt count)))))
-    ))
+        m (re-matcher #"(\d+) (\w+) (\w+) bag" s)
+        matches (take-while some? (repeatedly #(re-find m)))
+        result (reduce (fn [acc [_ count & rest]] (assoc acc (keywordize rest) (Integer/parseInt count))) {} matches)]
+    [key result]))
 
 (def children (fn [m key] (keys (m key))))
 
