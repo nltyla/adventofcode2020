@@ -308,3 +308,35 @@
         (cond (= outcome :success) acc
               (> iter max-iter) (println "fail iter " iter " acc" acc)
               :else (recur (inc iter)))))))
+
+(defn init-9
+  [coll]
+  (loop [c1 coll
+         sums {}]
+    (if-let [c2 (next c1)]
+      (let [term (first c1)
+            r' (reduce #(update %1 (+ term %2) (fnil inc 0)) sums c2)]
+        (recur c2 r'))
+      sums)))
+
+(defn delta-sums
+  [n v f]
+  (reduce #(update %1 (+ n %2) (fnil f 0)) {} v))
+
+(defn day9-1
+  "--- Day 9: Encoding Error ---"
+  [name n]
+  (let [s (into [] (inputs name #(Long/parseLong %)))]
+    (loop [sums (init-9 (take n s))
+           in s]
+      ;(println "sums" sums "in" in)
+      (let [c (in n)]
+        (if (> (get sums c 0) 0)
+          (let [evicted-sums (delta-sums (in 0) (subvec in 1 n) dec)
+                admitted-sums (delta-sums c (subvec in 1 n) inc)
+                sums' (merge-with + sums evicted-sums admitted-sums)]
+            (recur sums' (subvec in 1)))
+          c))
+      )
+    )
+  )
