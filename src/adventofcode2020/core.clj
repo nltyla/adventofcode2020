@@ -329,7 +329,6 @@
   (let [s (into [] (inputs name #(Long/parseLong %)))]
     (loop [sums (init-9 (take n s))
            in s]
-      ;(println "sums" sums "in" in)
       (let [c (in n)]
         (if (> (get sums c 0) 0)
           (let [evicted-sums (delta-sums (in 0) (subvec in 1 n) dec)
@@ -340,3 +339,20 @@
       )
     )
   )
+
+(def sum (memoize
+           (fn
+             [from to v]
+             (if (= from to)
+               (v from)
+               (+ (v to) (sum from (dec to) v))))))
+
+(defn day9-2
+  "--- Day 9: Encoding Error ---"
+  [name n]
+  (let [s (into [] (inputs name #(Long/parseLong %)))
+        ranges (for [x (range (count s)) y (range (count s)) :when (> y x)] [x y])
+        sums (take-while #(not= n (sum (% 0) (% 1) s)) ranges)
+        matching-range (nth ranges (count sums))
+        matching-vector (subvec s (matching-range 0) (matching-range 1))]
+    (+ (apply max matching-vector) (apply min matching-vector))))

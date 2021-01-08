@@ -85,4 +85,7 @@
   (is (= 127 (day9-1 "9-example.txt" 5)))
   (is (= 50047984 (day9-1 "9.txt" 25))))
 
+(deftest day9-2-test
+  (is (= 62 (day9-2 "9-example.txt" 127)))
+  (is (= 5407707 (day9-2 "9.txt" 50047984))))
 
