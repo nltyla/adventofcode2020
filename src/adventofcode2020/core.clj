@@ -356,3 +356,25 @@
         matching-range (nth ranges (count sums))
         matching-vector (subvec s (matching-range 0) (matching-range 1))]
     (+ (apply max matching-vector) (apply min matching-vector))))
+
+(defn adapter-search
+  [in out]
+  (if (empty? in)
+    out
+    (let [previous-jolt (last out)
+          max-next-joltage (+ 4 previous-jolt)
+          candidates (take-while #(< previous-jolt % max-next-joltage) in)]
+      (mapcat identity (map #(adapter-search (disj in %) (conj out %)) candidates)))))
+
+(defn day10-1
+  "--- Day 10: Adapter Array ---"
+  [name]
+  (let [s (inputs name #(Integer/parseInt %))
+        device-joltage (+ 3 (apply max s))
+        out (adapter-search (apply sorted-set (conj s device-joltage)) [0])
+        jolt-freqs (->> out
+                        (partition 2 1)
+                        (map #(- (second %) (first %)))
+                        frequencies)]
+    (println out)
+    (* (jolt-freqs 1) (jolt-freqs 3))))
