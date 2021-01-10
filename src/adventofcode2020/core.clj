@@ -357,24 +357,38 @@
         matching-vector (subvec s (matching-range 0) (matching-range 1))]
     (+ (apply max matching-vector) (apply min matching-vector))))
 
-(defn adapter-search
-  [in out]
-  (if (empty? in)
-    out
-    (let [previous-jolt (last out)
-          max-next-joltage (+ 4 previous-jolt)
-          candidates (take-while #(< previous-jolt % max-next-joltage) in)]
-      (mapcat identity (map #(adapter-search (disj in %) (conj out %)) candidates)))))
-
 (defn day10-1
   "--- Day 10: Adapter Array ---"
   [name]
   (let [s (inputs name #(Integer/parseInt %))
-        device-joltage (+ 3 (apply max s))
-        out (adapter-search (apply sorted-set (conj s device-joltage)) [0])
+        device-jolt (+ 3 (apply max s))
+        out (conj (apply sorted-set s) 0 device-jolt)
         jolt-freqs (->> out
                         (partition 2 1)
                         (map #(- (second %) (first %)))
                         frequencies)]
-    (println out)
     (* (jolt-freqs 1) (jolt-freqs 3))))
+
+(defn candidates
+  [acc jolt']
+  (let [in (first (acc (dec (count acc))))
+        in' (disj in jolt')]
+    (conj acc [in' jolt'])))
+
+(def adapter-search
+  (memoize
+    (fn
+      [in jolt]
+      (if (empty? in)
+        1
+        (let [max-jolt (+ 3 jolt)
+              attempts (rest (reduce candidates [[in jolt]] (subseq in > jolt <= max-jolt)))]
+          (reduce + (map #(adapter-search (% 0) (% 1)) attempts)))))))
+
+(defn day10-2
+  "--- Day 10 Part Two: Adapter Array ---"
+  [name]
+  (let [s (inputs name #(Integer/parseInt %))
+        device-jolt (+ 3 (apply max s))
+        out (adapter-search (apply sorted-set (conj s device-jolt)) 0)]
+    out))
