@@ -102,3 +102,20 @@
 (deftest day11-1-test
   (is (= 37 (day11-1 "11-example.txt")))
   (is (= 2183 (day11-1 "11.txt"))))
+
+(def parse-occupieds (partial parse-area #(= \# %)))
+(defn visible-occupied-seats-tester
+  [name seat]
+  (let [s (inputs name identity)
+        maxrow (dec (count s))
+        maxcol (dec (count (first s)))
+        seats (parse-seats s)
+        occupieds (parse-occupieds s)]
+    (visible-occupied-seats maxrow maxcol seats occupieds seat)))
+
+(deftest day11-2-test
+  (is (= 8 (visible-occupied-seats-tester "11-2-example-1.txt" [4 3])))
+  (is (= 0 (visible-occupied-seats-tester "11-2-example-2.txt" [1 1])))
+  (is (= 0 (visible-occupied-seats-tester "11-2-example-3.txt" [3 3])))
+  (is (= 26 (day11-2 "11-example.txt")))
+  (is (= 1990 (day11-2 "11.txt"))))

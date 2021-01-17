@@ -398,11 +398,13 @@
 (defn live-neighbors [cells cell] (set/intersection (neighbors cell) cells))
 (defn count-live-neighbors [cells cell] (count (live-neighbors cells cell)))
 
-(defn seats
-  [strs]
+(defn parse-area
+  [pred strs]
   (set (for [idx-row (map-indexed vector strs)
-             col (keep-indexed #(if (= \L %2) %1) (idx-row 1))]
+             col (keep-indexed #(if (pred %2) %1) (idx-row 1))]
          [(idx-row 0) col])))
+
+(def parse-seats (partial parse-area #(not= \. %)))
 
 (defn ngen [seats occupieds]
   (reduce (fn
@@ -420,9 +422,48 @@
   "--- Day 11 : Seating System ---"
   [name]
   (let [s (inputs name identity)
-        seats (seats s)]
+        seats (parse-seats s)]
     (loop [occupieds #{}]
       (let [occupieds' (ngen seats occupieds)]
+        (if (= occupieds occupieds')
+          (count occupieds)
+          (recur occupieds'))))))
+
+(defn ray [seat offset] (iterate #(vec (map + % offset)) seat))
+(defn rays [seat] (map #(rest (ray seat %)) [[-1 1] [0 1] [1 1] [-1 0] [1 0] [-1 -1] [0 -1] [1 -1]]))
+(defn in-area? [maxrow maxcol [row col]] (and (<= 0 row maxrow) (<= 0 col maxcol)))
+
+(defn visible-occupied-seat [maxrow maxcol seats occupieds ray]
+  (let [bounded-ray (drop-while #(and (in-area? maxrow maxcol %) (not (contains? seats %))) ray)
+        seat-candidate (first bounded-ray)]
+    (if (contains? occupieds seat-candidate) 1 0)))
+
+(defn visible-occupied-seats [maxrow maxcol seats occupieds seat]
+  (let [seat-rays (rays seat)
+        f (partial visible-occupied-seat maxrow maxcol seats occupieds)]
+    (reduce + (map f seat-rays))))
+
+(defn ngen2 [maxrow maxcol seats occupieds]
+  (reduce (fn
+            [occupieds' seat]
+            (let [nb (visible-occupied-seats maxrow maxcol seats occupieds seat)]
+              (cond (contains? occupieds seat) (if (>= nb 5)
+                                                 (disj occupieds' seat)
+                                                 occupieds')
+                    :else (if (= nb 0)
+                            (conj occupieds' seat)
+                            occupieds'))
+              )) occupieds seats))
+
+(defn day11-2
+  "--- Day 11, Part Two : Seating System ---"
+  [name]
+  (let [s (inputs name identity)
+        maxrow (dec (count s))
+        maxcol (dec (count (first s)))
+        seats (parse-seats s)]
+    (loop [occupieds #{}]
+      (let [occupieds' (ngen2 maxrow maxcol seats occupieds)]
         (if (= occupieds occupieds')
           (count occupieds)
           (recur occupieds'))))))
