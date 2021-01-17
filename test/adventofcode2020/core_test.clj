@@ -98,3 +98,7 @@
   (is (= 8 (day10-2 "10-example-1.txt")))
   (is (= 19208 (day10-2 "10-example-2.txt")))
   (is (= 7086739046912 (day10-2 "10.txt"))))
+
+(deftest day11-1-test
+  (is (= 37 (day11-1 "11-example.txt")))
+  (is (= 2183 (day11-1 "11.txt"))))

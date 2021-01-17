@@ -392,3 +392,37 @@
         device-jolt (+ 3 (apply max s))
         out (adapter-search (apply sorted-set (conj s device-jolt)) 0)]
     out))
+
+(defn offset [cell offset] (vec (map + cell offset)))
+(defn neighbors [cell] (set (map #(offset cell %) [[-1 1] [0 1] [1 1] [-1 0] [1 0] [-1 -1] [0 -1] [1 -1]])))
+(defn live-neighbors [cells cell] (set/intersection (neighbors cell) cells))
+(defn count-live-neighbors [cells cell] (count (live-neighbors cells cell)))
+
+(defn seats
+  [strs]
+  (set (for [idx-row (map-indexed vector strs)
+             col (keep-indexed #(if (= \L %2) %1) (idx-row 1))]
+         [(idx-row 0) col])))
+
+(defn ngen [seats occupieds]
+  (reduce (fn
+            [occupieds' seat]
+            (let [nb (count-live-neighbors occupieds seat)]
+              (cond (contains? occupieds seat) (if (>= nb 4)
+                                                 (disj occupieds' seat)
+                                                 occupieds')
+                    :else (if (= nb 0)
+                            (conj occupieds' seat)
+                            occupieds'))
+              )) occupieds seats))
+
+(defn day11-1
+  "--- Day 11 : Seating System ---"
+  [name]
+  (let [s (inputs name identity)
+        seats (seats s)]
+    (loop [occupieds #{}]
+      (let [occupieds' (ngen seats occupieds)]
+        (if (= occupieds occupieds')
+          (count occupieds)
+          (recur occupieds'))))))
