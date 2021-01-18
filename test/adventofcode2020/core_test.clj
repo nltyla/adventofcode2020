@@ -119,3 +119,11 @@
   (is (= 0 (visible-occupied-seats-tester "11-2-example-3.txt" [3 3])))
   (is (= 26 (day11-2 "11-example.txt")))
   (is (= 1990 (day11-2 "11.txt"))))
+
+(deftest day12-1-test
+  (is (= 25 (day12-1 "12-example.txt")))
+  (is (= 420 (day12-1 "12.txt"))))
+
+(deftest day12-2-test
+  (is (= 286 (day12-2 "12-example.txt")))
+  (is (= 42073 (day12-2 "12.txt"))))

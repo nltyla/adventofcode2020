@@ -467,3 +467,60 @@
         (if (= occupieds occupieds')
           (count occupieds)
           (recur occupieds'))))))
+
+(defn parse-12
+  [s]
+  (let [[_ actionstr valstr] (re-matches #"([NSEWLRF])(\d+)" s)
+        action (keyword actionstr)
+        value (Integer/parseInt valstr)]
+    [action value]))
+
+(defn apply-instruction
+  [acc [action value]]
+  (cond (= action :N) (update acc :lat #(+ % value))
+        (= action :S) (update acc :lat #(- % value))
+        (= action :E) (update acc :lon #(+ % value))
+        (= action :W) (update acc :lon #(- % value))
+        (= action :L) (update acc :hdg #(mod (- % value) 360))
+        (= action :R) (update acc :hdg #(mod (+ % value) 360))
+        (= action :F) (let [hdg (:hdg acc)]
+                        (cond (= hdg 0) (apply-instruction acc [:N value])
+                              (= hdg 90) (apply-instruction acc [:E value])
+                              (= hdg 180) (apply-instruction acc [:S value])
+                              (= hdg 270) (apply-instruction acc [:W value])))))
+
+(defn day12-1
+  "--- Day 12: Rain Risk ---"
+  [name]
+  (let [s (inputs name parse-12)
+        out (reduce apply-instruction {:lat 0 :lon 0 :hdg 90} s)]
+    (+ (Math/abs (:lat out)) (Math/abs (:lon out)))))
+
+(defn apply-instruction-2
+  [acc [action value]]
+  (cond (= action :N) (update acc :waylat #(+ % value))
+        (= action :S) (update acc :waylat #(- % value))
+        (= action :E) (update acc :waylon #(+ % value))
+        (= action :W) (update acc :waylon #(- % value))
+        (= action :L) (let [lat (:waylat acc)
+                            lon (:waylon acc)]
+                        (cond (= value 270) (-> acc
+                                               (assoc :waylat (- lon))
+                                               (assoc :waylon lat))
+                              (= value 180) (-> acc
+                                                (assoc :waylat (- lat))
+                                                (assoc :waylon (- lon)))
+                              (= value 90) (-> acc
+                                                (assoc :waylat lon)
+                                                (assoc :waylon (- lat)))))
+        (= action :R) (apply-instruction-2 acc [:L (- 360 value)])
+        (= action :F) (-> acc
+                          (update :lat #(+ % (* value (:waylat acc))))
+                          (update :lon #(+ % (* value (:waylon acc)))))))
+
+(defn day12-2
+  "--- Day 12, Part Two: Rain Risk ---"
+  [name]
+  (let [s (inputs name parse-12)
+        out (reduce apply-instruction-2 {:lat 0 :lon 0 :waylat 1 :waylon 10} s)]
+    (+ (Math/abs (:lat out)) (Math/abs (:lon out)))))
