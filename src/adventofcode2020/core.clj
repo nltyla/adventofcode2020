@@ -441,7 +441,7 @@
 (defn visible-occupied-seats [maxrow maxcol seats occupieds seat]
   (let [seat-rays (rays seat)
         f (partial visible-occupied-seat maxrow maxcol seats occupieds)]
-    (reduce + (map f seat-rays))))
+    (transduce (map f) + seat-rays)))
 
 (defn ngen2 [maxrow maxcol seats occupieds]
   (reduce (fn
@@ -524,3 +524,18 @@
   (let [s (inputs name parse-12)
         out (reduce apply-instruction-2 {:lat 0 :lon 0 :waylat 1 :waylon 10} s)]
     (+ (Math/abs (:lat out)) (Math/abs (:lon out)))))
+
+(defn parse-13
+  [s]
+  (map #(Integer/parseInt %) (filter #(not= % "x") (str/split s #","))))
+
+(defn day13-1
+      "--- Day 13: Shuttle Search ---"
+      [name]
+      (let [s (inputs name parse-13)
+            target (first (first s))
+            ids (second s)
+            nearests (map #(- (* % (inc (quot target %))) target) ids)
+            [idx min] (apply min-key second (map-indexed vector nearests))]
+        (println ids nearests idx min)
+        (* min (nth ids idx))))
