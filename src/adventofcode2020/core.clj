@@ -584,3 +584,26 @@
   (let [s (inputs name identity)
         run (reduce process-line-14 {:mask "" :mem {}} s)]
     (reduce + (vals (:mem run)))))
+
+(defn gen-addrs
+  [^long n mask]
+  (reduce-kv (fn [acc k v] (cond (= \X v) (concat (map #(bit-clear % k) acc) (map #(bit-set % k) acc))
+                                 (= \1 v) (map #(bit-set % k) acc)
+                                 :else acc)) (list n) (vec (reverse mask))))
+
+(defn process-line-14-2
+  [acc s]
+  (if (str/starts-with? s "mask")
+    (assoc acc :mask (subs s 7))
+    (let [[_ addrstr decstr] (re-matches #"mem\[(\d+)\] = (\d+)" s)
+          addr (Long/parseLong addrstr)
+          n (Long/parseLong decstr)
+          addrs (gen-addrs addr (:mask acc))]
+      (reduce (fn [acc' addr] (assoc-in acc' [:mem addr] n)) acc addrs))))
+
+(defn day14-2
+  "--- Day 14, Part Two: Docking Data ---"
+  [name]
+  (let [s (inputs name identity)
+        run (reduce process-line-14-2 {:mask "" :mem {}} s)]
+    (reduce + (vals (:mem run)))))
