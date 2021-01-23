@@ -607,3 +607,20 @@
   (let [s (inputs name identity)
         run (reduce process-line-14-2 {:mask "" :mem {}} s)]
     (reduce + (vals (:mem run)))))
+
+(defn speak
+  [m spoken turn]
+  (lazy-seq
+    (let [turn' (inc turn)
+          turns (m spoken)
+          spoken' (if (= 1 (count turns))
+                    0
+                    (- (apply - (take-last 2 turns))))
+          m' (update m spoken' #(conj (vec %) turn'))]
+      (cons spoken' (speak m' spoken' turn')))))
+
+(defn day15-1
+  "--- Day 15: Rambunctious Recitation ---"
+  [in]
+  (let [m (reduce-kv (fn [acc k v] (update acc v #(conj (vec %) (inc k)))) {} in)]
+    (nth (speak m (peek in) (count in)) (- 2020 (inc (count in))))))
