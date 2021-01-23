@@ -505,14 +505,14 @@
         (= action :L) (let [lat (:waylat acc)
                             lon (:waylon acc)]
                         (cond (= value 270) (-> acc
-                                               (assoc :waylat (- lon))
-                                               (assoc :waylon lat))
+                                                (assoc :waylat (- lon))
+                                                (assoc :waylon lat))
                               (= value 180) (-> acc
                                                 (assoc :waylat (- lat))
                                                 (assoc :waylon (- lon)))
                               (= value 90) (-> acc
-                                                (assoc :waylat lon)
-                                                (assoc :waylon (- lat)))))
+                                               (assoc :waylat lon)
+                                               (assoc :waylon (- lat)))))
         (= action :R) (apply-instruction-2 acc [:L (- 360 value)])
         (= action :F) (-> acc
                           (update :lat #(+ % (* value (:waylat acc))))
@@ -530,12 +530,35 @@
   (map #(Integer/parseInt %) (filter #(not= % "x") (str/split s #","))))
 
 (defn day13-1
-      "--- Day 13: Shuttle Search ---"
-      [name]
-      (let [s (inputs name parse-13)
-            target (first (first s))
-            ids (second s)
-            nearests (map #(- (* % (inc (quot target %))) target) ids)
-            [idx min] (apply min-key second (map-indexed vector nearests))]
-        (println ids nearests idx min)
-        (* min (nth ids idx))))
+  "--- Day 13: Shuttle Search ---"
+  [name]
+  (let [s (inputs name parse-13)
+        target (first (first s))
+        ids (second s)
+        nearests (map #(- (* % (inc (quot target %))) target) ids)
+        [idx min] (apply min-key second (map-indexed vector nearests))]
+    (println ids nearests idx min)
+    (* min (nth ids idx))))
+
+(defn solver13 [v]
+  (let [sv (vec (reverse (sort-by first v)))
+        [step start] (first sv)]
+    (loop [n (- start)]
+      (let [n' (+ n step)]
+        (if (every? (fn [p] (= (mod (+ n (p 1)) (p 0)) 0)) sv)
+          n
+          (recur n'))))))
+
+(defn day13-2
+  "--- Day 13, Part Two: Shuttle Search ---"
+  [name]
+  (let [s (inputs name identity)
+        ids (str/split (second s) #",")
+        numoffs (reduce-kv (fn [acc k v]
+                             (if (= v "x")
+                               acc
+                               (conj acc [(Integer/parseInt v) k])))
+                           []
+                           ids)
+        ans (solver13 numoffs)]
+    ans))
