@@ -138,3 +138,10 @@
   (is (= 779210 (day13-2 "13-2-example-3.txt")))
   (is (= 1261476 (day13-2 "13-2-example-4.txt")))
   (is (= 1202161486 (day13-2 "13-2-example-5.txt"))))
+
+(deftest day14-1-test
+  (let [mask "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"]
+    (is (= 73 (apply-mask 11 mask)))
+    (is (= 101 (apply-mask 101 mask)))
+    (is (= 64 (apply-mask 0 mask)))
+    (is (= 5875750429995 (day14-1 "14.txt")))))

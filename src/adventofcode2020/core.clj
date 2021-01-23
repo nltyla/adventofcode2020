@@ -562,3 +562,25 @@
                            ids)
         ans (solver13 numoffs)]
     ans))
+
+(defn apply-mask
+  [^long n mask]
+  (reduce-kv (fn [acc k v] (cond (= \0 v) (bit-clear acc k)
+                                 (= \1 v) (bit-set acc k)
+                                 :else acc)) n (vec (reverse mask))))
+
+(defn process-line-14
+  [acc s]
+  (if (str/starts-with? s "mask")
+    (assoc acc :mask (subs s 7))
+    (let [[_ addrstr decstr] (re-matches #"mem\[(\d+)\] = (\d+)" s)
+          n (Long/parseLong decstr)
+          n' (apply-mask n (:mask acc))]
+      (assoc-in acc [:mem addrstr] n'))))
+
+(defn day14-1
+  "--- Day 14: Docking Data ---"
+  [name]
+  (let [s (inputs name identity)
+        run (reduce process-line-14 {:mask "" :mem {}} s)]
+    (reduce + (vals (:mem run)))))
