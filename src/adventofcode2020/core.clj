@@ -615,12 +615,13 @@
           turns (m spoken)
           spoken' (if (= 1 (count turns))
                     0
-                    (- (apply - (take-last 2 turns))))
-          m' (update m spoken' #(conj (vec %) turn'))]
+                    (apply - turns))
+          m' (update m spoken' #(take 2 (conj % turn')))]
       (cons spoken' (speak m' spoken' turn')))))
 
-(defn day15-1
+(defn day15
   "--- Day 15: Rambunctious Recitation ---"
-  [in]
-  (let [m (reduce-kv (fn [acc k v] (update acc v #(conj (vec %) (inc k)))) {} in)]
-    (nth (speak m (peek in) (count in)) (- 2020 (inc (count in))))))
+  [in n]
+  (let [m (reduce-kv (fn [acc k v] (update acc v #(conj % (inc k)))) {} in)
+        n (- n (inc (count in)))]
+    (nth (speak m (peek in) (count in)) n)))
