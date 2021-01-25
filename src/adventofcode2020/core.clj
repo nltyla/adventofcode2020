@@ -541,14 +541,35 @@
     (* min (nth ids idx))))
 
 (defn solver13 [v]
-  (let [sv (vec (reverse (sort-by first v)))
+  (let [sv (reverse (sort-by first v))
         [step start] (first sv)]
     (loop [n (- start)]
       (let [n' (+ n step)]
-        (if (every? (fn [p] (= (mod (+ n (p 1)) (p 0)) 0)) sv)
+        (if (every? (fn [p] (= (mod (+ n (second p)) (first p)) 0)) sv)
           n
           (recur n'))))))
 
+; while correct, the clojure code runs too slowly to solve the problem
+; solved by handcoding some java that completes on 1 core in about 30 mins
+;
+;public static long solve() {
+;    long myN = -17L;
+;    long myStep = 907L;
+;    while (true) {
+;        myN += myStep;
+;        if ((myN + 17L) % 907L == 0
+;            && (myN + 48L) % 653L == 0
+;            && (myN + 58L) % 41L == 0
+;            && (myN + 11L) % 37L == 0
+;            && (myN + 46L) % 29L == 0
+;            && (myN + 40L) % 23L == 0
+;            && (myN + 29L) % 19L == 0
+;            && myN % 17L == 0
+;            && (myN + 61L) % 13L == 0) {
+;                return myN;
+;        }
+;    }
+;}
 (defn day13-2
   "--- Day 13, Part Two: Shuttle Search ---"
   [name]
@@ -557,7 +578,7 @@
         numoffs (reduce-kv (fn [acc k v]
                              (if (= v "x")
                                acc
-                               (conj acc [(Integer/parseInt v) k])))
+                               (conj acc (list (Integer/parseInt v) k))))
                            []
                            ids)
         ans (solver13 numoffs)]
