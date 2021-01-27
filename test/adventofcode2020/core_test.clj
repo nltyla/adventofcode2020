@@ -163,3 +163,6 @@
 ; slow, 30 secs
 (deftest day15-2-test
   (is (= 505 (day15 [14 8 16 0 1 17] 30000000))))
+
+(deftest day16-1-test
+  (is (= 29759 (day16-1 "16.txt"))))

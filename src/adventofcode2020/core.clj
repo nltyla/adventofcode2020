@@ -646,3 +646,21 @@
   (let [m (reduce-kv (fn [acc k v] (update acc v #(conj % (inc k)))) {} in)
         n (- n (inc (count in)))]
     (nth (speak m (peek in) (count in)) n)))
+
+(defn parse-pred
+  [s]
+  (let [[_ l1 h1 l2 h2] (re-matches #".*: (\d+)-(\d+) or (\d+)-(\d+)" s)]
+    (fn [x] (or (<= (Integer/parseInt l1) x (Integer/parseInt h1))
+                (<= (Integer/parseInt l2) x (Integer/parseInt h2))))))
+
+(defn day16-1
+  "--- Day 16: Ticket Translation ---"
+  [name]
+  (let [s (inputs name identity)
+        preds (map parse-pred (take 20 s))
+        xf (comp
+             (drop 25)
+             (mapcat #(str/split % #","))
+             (map #(Integer/parseInt %))
+             (filter #(not-any? (fn [pred] (pred %)) preds)))]
+    (transduce xf + s)))
