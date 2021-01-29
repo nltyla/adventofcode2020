@@ -658,9 +658,50 @@
   [name]
   (let [s (inputs name identity)
         preds (map parse-pred (take 20 s))
+        somefn (apply some-fn preds)
         xf (comp
              (drop 25)
              (mapcat #(str/split % #","))
              (map #(Integer/parseInt %))
-             (filter #(not-any? (fn [pred] (pred %)) preds)))]
+             (filter #(not (somefn %))))]
     (transduce xf + s)))
+
+(defn transpose
+  [m]
+  (apply mapv vector m))
+
+(defn strs-to-ints
+  [v]
+  (mapv #(Integer/parseInt %) v))
+
+(defn day16-2
+  "--- Day 16, Part Two: Ticket Translation ---"
+  [name]
+  (let [s (inputs name identity)
+        preds (map parse-pred (take 20 s))
+        somefn (apply some-fn preds)
+        xf (comp
+             (drop 25)
+             (map #(str/split % #","))
+             (map strs-to-ints)
+             (filter (fn [row] (every? #(somefn %) row)))
+             )
+        valrows (transpose (sequence xf s))
+        row-validfields (for [index-valrow (map-indexed vector valrows)
+                        index-pred (map-indexed vector preds)
+                        :when (every? (second index-pred) (second index-valrow))]
+                    [(first index-valrow) (first index-pred)])
+        row-field (->> row-validfields
+                       (partition-by first)
+                       (map (fn [p] (reduce (fn [acc v] [(v 0) (conj (set (peek acc)) (v 1))]) [] p)))
+                       (cons [-1 #{}])
+                       (sort-by #(count (peek %)))
+                       (partition 2 1)
+                       (map (fn [[[_ s1][row s2]]] [row (first (set/difference s2 s1))]))
+                       (filter #(<= 0 (peek %) 5))
+                       (map first))
+        ticket (strs-to-ints (str/split (nth s 22) #","))
+        ticket-field-values (map #(nth ticket %) row-field)
+        ]
+    (apply * ticket-field-values)
+    ))

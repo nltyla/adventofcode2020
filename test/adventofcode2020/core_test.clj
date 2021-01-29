@@ -166,3 +166,6 @@
 
 (deftest day16-1-test
   (is (= 29759 (day16-1 "16.txt"))))
+
+(deftest day16-2-test
+  (is (= 1307550234719 (day16-2 "16.txt"))))
