@@ -494,7 +494,7 @@
   [name]
   (let [s (inputs name parse-12)
         out (reduce apply-instruction {:lat 0 :lon 0 :hdg 90} s)]
-    (+ (Math/abs (:lat out)) (Math/abs (:lon out)))))
+    (+ (Math/abs ^int (:lat out)) (Math/abs ^int (:lon out)))))
 
 (defn apply-instruction-2
   [acc [action value]]
@@ -523,7 +523,7 @@
   [name]
   (let [s (inputs name parse-12)
         out (reduce apply-instruction-2 {:lat 0 :lon 0 :waylat 1 :waylon 10} s)]
-    (+ (Math/abs (:lat out)) (Math/abs (:lon out)))))
+    (+ (Math/abs ^int (:lat out)) (Math/abs ^int (:lon out)))))
 
 (defn parse-13
   [s]
@@ -666,42 +666,34 @@
              (filter #(not (somefn %))))]
     (transduce xf + s)))
 
-(defn transpose
-  [m]
-  (apply mapv vector m))
-
 (defn strs-to-ints
   [v]
-  (mapv #(Integer/parseInt %) v))
+  (mapv #(Integer/parseInt %) (str/split v #",")))
 
 (defn day16-2
   "--- Day 16, Part Two: Ticket Translation ---"
   [name]
   (let [s (inputs name identity)
-        preds (map parse-pred (take 20 s))
+        preds (map parse-pred (take 20 s)) ; fields are in first 20 rows
         somefn (apply some-fn preds)
-        xf (comp
-             (drop 25)
-             (map #(str/split % #","))
-             (map strs-to-ints)
-             (filter (fn [row] (every? #(somefn %) row)))
-             )
-        valrows (transpose (sequence xf s))
-        row-validfields (for [index-valrow (map-indexed vector valrows)
-                        index-pred (map-indexed vector preds)
-                        :when (every? (second index-pred) (second index-valrow))]
-                    [(first index-valrow) (first index-pred)])
-        row-field (->> row-validfields
-                       (partition-by first)
-                       (map (fn [p] (reduce (fn [acc v] [(v 0) (conj (set (peek acc)) (v 1))]) [] p)))
-                       (cons [-1 #{}])
-                       (sort-by #(count (peek %)))
-                       (partition 2 1)
-                       (map (fn [[[_ s1][row s2]]] [row (first (set/difference s2 s1))]))
-                       (filter #(<= 0 (peek %) 5))
-                       (map first))
-        ticket (strs-to-ints (str/split (nth s 22) #","))
-        ticket-field-values (map #(nth ticket %) row-field)
-        ]
-    (apply * ticket-field-values)
-    ))
+        my-ticket (strs-to-ints (nth s 22)) ; my ticket is in row 23
+        tickets' (->> s
+                      (drop 25) ; tickets start at row 26
+                      (map strs-to-ints)
+                      (filter (fn [row] (every? #(somefn %) row)))
+                      (apply mapv vector)) ; transpose
+        result (->> (for [index-valrow (map-indexed vector tickets')
+                          index-pred (map-indexed vector preds)
+                          :when (every? (second index-pred) (second index-valrow))]
+                      [(first index-valrow) (first index-pred)])
+                    (partition-by first)
+                    (map (fn [p] (reduce (fn [acc v] [(v 0) (conj (set (peek acc)) (v 1))]) [] p)))
+                    (cons [-1 #{}])
+                    (sort-by #(count (peek %)))
+                    (partition 2 1)
+                    (map (fn [[[_ s1] [row s2]]] [row (first (set/difference s2 s1))]))
+                    (filter #(<= 0 (peek %) 5)) ; first 6 rows are departure fields
+                    (map first)
+                    (map #(nth my-ticket %))
+                    (apply *))]
+    result))
