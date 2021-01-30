@@ -674,14 +674,14 @@
   "--- Day 16, Part Two: Ticket Translation ---"
   [name]
   (let [s (inputs name identity)
-        preds (map parse-pred (take 20 s)) ; fields are in first 20 rows
+        preds (map parse-pred (take 20 s))                  ; fields are in first 20 rows
         somefn (apply some-fn preds)
-        my-ticket (strs-to-ints (nth s 22)) ; my ticket is in row 23
+        my-ticket (strs-to-ints (nth s 22))                 ; my ticket is in row 23
         tickets' (->> s
-                      (drop 25) ; tickets start at row 26
+                      (drop 25)                             ; tickets start at row 26
                       (map strs-to-ints)
                       (filter (fn [row] (every? #(somefn %) row)))
-                      (apply mapv vector)) ; transpose
+                      (apply mapv vector))                  ; transpose
         result (->> (for [index-valrow (map-indexed vector tickets')
                           index-pred (map-indexed vector preds)
                           :when (every? (second index-pred) (second index-valrow))]
@@ -692,8 +692,43 @@
                     (sort-by #(count (peek %)))
                     (partition 2 1)
                     (map (fn [[[_ s1] [row s2]]] [row (first (set/difference s2 s1))]))
-                    (filter #(<= 0 (peek %) 5)) ; first 6 rows are departure fields
+                    (filter #(<= 0 (peek %) 5))             ; first 6 rows are departure fields
                     (map first)
                     (map #(nth my-ticket %))
                     (apply *))]
     result))
+
+(defn parse-slice
+  [pred strs]
+  (set (for [idx-row (map-indexed vector strs)
+             col (keep-indexed #(if (pred %2) %1) (idx-row 1))]
+         [(idx-row 0) col 0])))
+
+(def parse-cells (partial parse-slice #(not= \. %)))
+
+(defn neighbors-3d
+  [[x y z]]
+  (set (for [xr [-1 0 1]
+        yr [-1 0 1]
+        zr [-1 0 1]
+        :when (not (and (= xr 0) (= yr 0) (= zr 0)))]
+       [(+ xr x) (+ yr y) (+ zr z)])))
+
+(defn live-neighbors-3d [cells cell] (set/intersection (neighbors-3d cell) cells))
+(defn void-neighbors [cells cell] (set/difference (neighbors-3d cell) cells))
+(defn count-live-neighbors-3d [cells cell] (count (live-neighbors-3d cells cell)))
+(defn cell-survives? [cells cell] (let [n (count-live-neighbors-3d cells cell)] (or (= 2 n) (= 3 n))))
+(defn survivors [cells] (set (filter #(cell-survives? cells %) cells)))
+(defn cell-born? [cells cell] (= 3 (count-live-neighbors-3d cells cell)))
+(defn potential-births [cells] (set (apply set/union (map #(void-neighbors cells %) cells))))
+(defn births [cells] (set (filter #(cell-born? cells %) (potential-births cells))))
+(defn next-gen [cells] (set/union (survivors cells) (births cells)))
+(defn life [cells] (iterate next-gen cells))
+
+(defn day17-1
+  "--- Day 17: Conway Cubes ---"
+  [name]
+  (let [s (inputs name identity)
+        cells (parse-cells s)
+        gens (life cells)]
+    (count (nth gens 6))))
