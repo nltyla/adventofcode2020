@@ -698,37 +698,38 @@
                     (apply *))]
     result))
 
-(defn parse-slice
-  [pred strs]
+(defn parse-slice-n
+  [pred strs n]
   (set (for [idx-row (map-indexed vector strs)
              col (keep-indexed #(if (pred %2) %1) (idx-row 1))]
-         [(idx-row 0) col 0])))
+         (into [(idx-row 0) col 0] (repeat (- n 2) 0)))))
 
-(def parse-cells (partial parse-slice #(not= \. %)))
+(def parse-cells-n (partial parse-slice-n #(not= \. %)))
 
-(defn neighbors-3d
-  [[x y z]]
-  (set (for [xr [-1 0 1]
-        yr [-1 0 1]
-        zr [-1 0 1]
-        :when (not (and (= xr 0) (= yr 0) (= zr 0)))]
-       [(+ xr x) (+ yr y) (+ zr z)])))
+(defn offsets-n [n]
+  (let [ranges (repeat n [0 1 -1])]
+    (rest (reduce (fn [indices-so-far new-range]
+                    (mapcat (fn [el] (map #(conj % el) indices-so-far)) new-range))
+                  (map vector (first ranges)) (rest ranges)))))
 
-(defn live-neighbors-3d [cells cell] (set/intersection (neighbors-3d cell) cells))
-(defn void-neighbors [cells cell] (set/difference (neighbors-3d cell) cells))
-(defn count-live-neighbors-3d [cells cell] (count (live-neighbors-3d cells cell)))
-(defn cell-survives? [cells cell] (let [n (count-live-neighbors-3d cells cell)] (or (= 2 n) (= 3 n))))
-(defn survivors [cells] (set (filter #(cell-survives? cells %) cells)))
-(defn cell-born? [cells cell] (= 3 (count-live-neighbors-3d cells cell)))
-(defn potential-births [cells] (set (apply set/union (map #(void-neighbors cells %) cells))))
-(defn births [cells] (set (filter #(cell-born? cells %) (potential-births cells))))
-(defn next-gen [cells] (set/union (survivors cells) (births cells)))
-(defn life [cells] (iterate next-gen cells))
+(defn offset-n [cell offset] (vec (map + cell offset)))
+(defn neighbors-n [cell] (set (map #(offset-n cell %) (offsets-n (count cell)))))
+(def mem-neighbors-n (memoize neighbors-n))
+(defn live-neighbors-n [cells cell] (set/intersection (mem-neighbors-n cell) cells))
+(defn void-neighbors-n [cells cell] (set/difference (mem-neighbors-n cell) cells))
+(defn count-live-neighbors-n [cells cell] (count (live-neighbors-n cells cell)))
+(defn cell-survives-n? [cells cell] (let [n (count-live-neighbors-n cells cell)] (or (= 2 n) (= 3 n))))
+(defn survivors-n [cells] (set (filter #(cell-survives-n? cells %) cells)))
+(defn cell-born-n? [cells cell] (= 3 (count-live-neighbors-n cells cell)))
+(defn potential-births-n [cells] (set (apply set/union (map #(void-neighbors-n cells %) cells))))
+(defn births-n [cells] (set (filter #(cell-born-n? cells %) (potential-births-n cells))))
+(defn next-gen-n [cells] (set/union (survivors-n cells) (births-n cells)))
+(defn life-n [cells] (iterate next-gen-n cells))
 
-(defn day17-1
+(defn day17
   "--- Day 17: Conway Cubes ---"
-  [name]
+  [name n]
   (let [s (inputs name identity)
-        cells (parse-cells s)
-        gens (life cells)]
+        cells (parse-cells-n s n)
+        gens (life-n cells)]
     (count (nth gens 6))))

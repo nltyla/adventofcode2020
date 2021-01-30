@@ -171,5 +171,9 @@
   (is (= 1307550234719 (day16-2 "16.txt"))))
 
 (deftest day17-1-test
-  (is (= 112 (day17-1 "17-1-example.txt")))
-  (is (= 237 (day17-1 "17.txt"))))
+  (is (= 112 (day17 "17-example.txt" 2)))
+  (is (= 237 (day17 "17.txt" 2))))
+
+(deftest day17-2-test
+  (is (= 848 (day17 "17-example.txt" 3)))
+  (is (= 2448 (day17 "17.txt" 3))))
