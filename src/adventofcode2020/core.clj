@@ -733,3 +733,68 @@
         cells (parse-cells-n s n)
         gens (life-n cells)]
     (count (nth gens 6))))
+
+(defn eval-err
+  [s expected]
+  ((throw (Exception. (str "Syntax error. rest: \"" (str/join s) "\" expected: \"" expected "\"")))))
+
+(defn consume-char
+  [s c]
+  (if (= (first s) c)
+    (rest s)
+    (eval-err s c)))
+
+(defn consume-int
+  [s]
+  [(Integer/parseInt (str (first s))) (rest s)])
+
+(def eval-left)
+(def eval-op)
+(def eval-parens)
+
+(defn eval-right
+  [s]
+  (println "eval-right" s)
+  (let [tok (first s)]
+    (cond (Character/isDigit ^char tok) (consume-int s)
+          (= \( tok) (eval-parens s)
+          :else (eval-err s "digit | ("))))
+
+(defn eval-op-f
+  [left s f]
+  (let [[right s1] (eval-right (rest s))
+        left1 (f left right)]
+    (eval-op left1 s1)))
+
+(defn eval-op
+  [left s]
+  (println "eval-op" left s)
+  (if (empty? s)
+    [left s]
+    (let [tok (first s)]
+      (cond (= \+ tok) (eval-op-f left s +)
+            (= \* tok) (eval-op-f left s *)
+            (= \- tok) (eval-op-f left s -)
+            (= \/ tok) (eval-op-f left s /)
+            (= \)) [left s]
+            :else (eval-err s "+ | * | - | / | )")))))
+
+(defn eval-parens
+  [s]
+  (let [s1 (consume-char s \()
+        [left1 s2] (eval-left nil s1)
+        s3 (consume-char s2 \))]
+    [left1 s3]))
+
+(defn eval-left
+  ([s] (first (eval-left nil (str/replace s " " ""))))
+  ([left s]
+   (println "eval-left" s)
+   (if (empty? s)
+     [left s]
+     (let [tok (first s)]
+       (cond (Character/isDigit ^char tok) (let [[left1 s1] (consume-int s)]
+                                             (eval-op left1 s1))
+             (= \( tok) (let [[left1 s1] (eval-parens s)]
+                          (eval-op left1 s1))
+             :else (eval-err s "digit | ("))))))

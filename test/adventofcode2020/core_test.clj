@@ -177,3 +177,11 @@
 (deftest day17-2-test
   (is (= 848 (day17 "17-example.txt" 3)))
   (is (= 2448 (day17 "17.txt" 3))))
+
+(deftest day18-1-test
+  (is (= 26 (eval-left "2 * 3 + (4 * 5)")))
+  (is (= 437 (eval-left "5 + (8 * 3 + 9 + 3 * 4 * 3)")))
+  (is (= 12240 (eval-left "5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))")))
+  (is (= 13632 (eval-left "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2")))
+  )
+
