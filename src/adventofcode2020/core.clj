@@ -752,49 +752,58 @@
 (def eval-op)
 (def eval-parens)
 
+(defn digit? [c] (<= (int \0) (int c) (int \9)))
+
 (defn eval-right
   [s]
-  (println "eval-right" s)
   (let [tok (first s)]
-    (cond (Character/isDigit ^char tok) (consume-int s)
+    (cond (digit? tok) (consume-int s)
           (= \( tok) (eval-parens s)
           :else (eval-err s "digit | ("))))
 
-(defn eval-op-f
-  [left s f]
+(defn eval-operator
+  [operator [left s]]
   (let [[right s1] (eval-right (rest s))
-        left1 (f left right)]
-    (eval-op left1 s1)))
+        left1 (operator left right)]
+    (eval-op [left1 s1])))
 
 (defn eval-op
-  [left s]
-  (println "eval-op" left s)
+  [[_ s :as all]]
   (if (empty? s)
-    [left s]
-    (let [tok (first s)]
-      (cond (= \+ tok) (eval-op-f left s +)
-            (= \* tok) (eval-op-f left s *)
-            (= \- tok) (eval-op-f left s -)
-            (= \/ tok) (eval-op-f left s /)
-            (= \)) [left s]
-            :else (eval-err s "+ | * | - | / | )")))))
+    all
+    (let [tok (first s)
+          f (cond (= \+ tok) (partial eval-operator +)
+                  (= \* tok) (partial eval-operator *)
+                  (= \- tok) (partial eval-operator -)
+                  (= \/ tok) (partial eval-operator /)
+                  (= \)) identity
+                  :else (eval-err s "+ | * | - | / | )"))]
+      (f all))))
 
 (defn eval-parens
   [s]
   (let [s1 (consume-char s \()
-        [left1 s2] (eval-left nil s1)
+        [left1 s2] (eval-left s1)
         s3 (consume-char s2 \))]
     [left1 s3]))
 
 (defn eval-left
-  ([s] (first (eval-left nil (str/replace s " " ""))))
-  ([left s]
-   (println "eval-left" s)
-   (if (empty? s)
-     [left s]
-     (let [tok (first s)]
-       (cond (Character/isDigit ^char tok) (let [[left1 s1] (consume-int s)]
-                                             (eval-op left1 s1))
-             (= \( tok) (let [[left1 s1] (eval-parens s)]
-                          (eval-op left1 s1))
-             :else (eval-err s "digit | ("))))))
+  [s]
+  (when-let [tok (first s)]
+    (cond (digit? tok) (->> s
+                            (consume-int)
+                            (eval-op))
+          (= \( tok) (->> s
+                          (eval-parens)
+                          (eval-op))
+          :else
+          (eval-err s "digit | ("))))
+
+(defn eval18-1
+  [s]
+  (first (eval-left (str/replace s " " ""))))
+
+(defn day18-1
+  [name]
+  (let [s (inputs name identity)]
+    (transduce (map eval18-1) + s)))
