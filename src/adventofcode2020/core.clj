@@ -751,7 +751,6 @@
 (def eval-left)
 (def eval-op)
 (def eval-parens)
-
 (defn digit? [c] (<= (int \0) (int c) (int \9)))
 
 (defn eval-right
@@ -767,17 +766,24 @@
         left1 (operator left right)]
     (eval-op [left1 s1])))
 
+(defn eval-operator-l
+  [operator [left s]]
+  (let [[right s1] (eval-left (rest s))
+        left1 (operator left right)]
+    [left1 s1]))
+
+(def plus-op (partial eval-operator +))
+(def ^:dynamic *mul-op* (partial eval-operator *))
+
 (defn eval-op
   [[_ s :as all]]
   (if (empty? s)
     all
     (let [tok (first s)
-          f (cond (= \+ tok) (partial eval-operator +)
-                  (= \* tok) (partial eval-operator *)
-                  (= \- tok) (partial eval-operator -)
-                  (= \/ tok) (partial eval-operator /)
+          f (cond (= \+ tok) plus-op
+                  (= \* tok) *mul-op*
                   (= \)) identity
-                  :else (eval-err s "+ | * | - | / | )"))]
+                  :else (eval-err s "+ | * | )"))]
       (f all))))
 
 (defn eval-parens
@@ -807,3 +813,14 @@
   [name]
   (let [s (inputs name identity)]
     (transduce (map eval18-1) + s)))
+
+(defn eval18-2
+  [s]
+  (binding [*mul-op* *mul-op*]
+    (set! *mul-op* (partial eval-operator-l *))
+    (first (eval-left (str/replace s " " "")))))
+
+(defn day18-2
+  [name]
+  (let [s (inputs name identity)]
+    (transduce (map eval18-2) + s)))
