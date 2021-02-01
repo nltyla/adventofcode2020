@@ -824,3 +824,43 @@
   [name]
   (let [s (inputs name identity)]
     (transduce (map eval18-2) + s)))
+
+(defn substitute
+  [m k]
+  (if (string? k)
+    k
+    (let [v (m k)]
+      (if (string? v)
+        v
+        (transduce (map #(substitute m %)) str v)))))
+
+(defn parse-tuple
+  [s]
+  (let [tuple (mapcat #(list "(" (Integer/parseInt %) ")") (str/split s #" "))]
+    (concat ["("] tuple [")"])))
+
+(defn parse-rule
+  [s]
+  (let [[key vals] (str/split s #": ")
+        k (Integer/parseInt key)
+        v (if (str/starts-with? vals "\"")
+            (subs vals 1 2)
+            (->> (str/split vals #" \| ")
+                 (map parse-tuple)
+                 (interpose ["|"])
+                 (apply concat)))]
+    [k v]))
+
+(defn parse-rules
+  [coll]
+  (transduce (map parse-rule) conj {} coll))
+
+(defn day19-1
+  [name]
+  (let [s (inputs name identity)
+        m (parse-rules (take-while not-empty s))
+        regex (substitute m 0)
+        pattern (re-pattern (str regex "$"))
+        messages (rest (drop-while not-empty s))
+        matches (filter some? (map #(re-matches pattern %) messages))]
+    (count matches)))
