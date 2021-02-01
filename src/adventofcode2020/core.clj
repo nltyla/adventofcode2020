@@ -810,6 +810,7 @@
   (first (eval-left (str/replace s " " ""))))
 
 (defn day18-1
+  "--- Day 18: Operation Order ---"
   [name]
   (let [s (inputs name identity)]
     (transduce (map eval18-1) + s)))
@@ -821,6 +822,7 @@
     (first (eval-left (str/replace s " " "")))))
 
 (defn day18-2
+  "--- Day 18, Part Two: Operation Order ---"
   [name]
   (let [s (inputs name identity)]
     (transduce (map eval18-2) + s)))
@@ -856,6 +858,7 @@
   (transduce (map parse-rule) conj {} coll))
 
 (defn day19-1
+  "--- Day 19: Monster Messages ---"
   [name]
   (let [s (inputs name identity)
         m (parse-rules (take-while not-empty s))
