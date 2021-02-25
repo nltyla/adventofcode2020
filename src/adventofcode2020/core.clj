@@ -1,7 +1,8 @@
 (ns adventofcode2020.core
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [instaparse.core :as insta]))
 
 (defn inputs
   "read file from resources, apply f to each line, return seq"
@@ -838,8 +839,8 @@
 
 (defn parse-tuple
   [s]
-  (let [tuple (mapcat #(list "(" (Integer/parseInt %) ")") (str/split s #" "))]
-    (concat ["("] tuple [")"])))
+  (let [tuple (mapcat #(list "(?:" (Integer/parseInt %) ")") (str/split s #" "))]
+    (concat ["(?:"] tuple [")"])))
 
 (defn parse-rule
   [s]
@@ -857,6 +858,7 @@
   [coll]
   (transduce (map parse-rule) conj {} coll))
 
+;regular grammar, we translate into regex
 (defn day19-1
   "--- Day 19: Monster Messages ---"
   [name]
@@ -866,4 +868,15 @@
         pattern (re-pattern (str regex "$"))
         messages (rest (drop-while not-empty s))
         matches (filter some? (map #(re-matches pattern %) messages))]
+    (count matches)))
+
+;context-free grammar, it's getting complex now, we just use a parser generator
+(defn day19-2
+  "--- Day 19, Part 2: Monster Messages ---"
+  [name]
+  (let [s (inputs name identity)
+        productions (str/join \newline (take-while not-empty s))
+        parser (insta/parser productions)
+        messages (rest (drop-while not-empty s))
+        matches (filter (complement insta/failure?) (map #(insta/parse parser % :start :0) messages))]
     (count matches)))
